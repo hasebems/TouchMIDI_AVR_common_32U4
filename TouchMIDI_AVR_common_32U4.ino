@@ -72,8 +72,8 @@ void setup()
 
   pinMode(LED1, OUTPUT);   // LED1
   digitalWrite(LED1, LOW);
-  pinMode(LED2, OUTPUT);   // LED2
-  digitalWrite(LED2, LOW);
+//  pinMode(LED2, OUTPUT);   // LED2
+//  digitalWrite(LED2, HIGH);
   
   const uint8_t md1 = digitalRead(MODEPIN1);
   const uint8_t md2 = digitalRead(MODEPIN2);
@@ -86,10 +86,10 @@ void setup()
   if (( md1 == LOW ) && ( md2 == LOW )){
     maxCapSenseDevice = 4;  //  TouchMIDI40
   }
-  else if (( md1 == LOW ) && ( md2 == HIGH )){
+  else if (( md1 == HIGH ) && ( md2 == LOW )){
     maxCapSenseDevice = 3;  //  TouchMIDI30key
   }
-  else if (( md1 == HIGH ) && ( md2 == LOW )){
+  else if (( md1 == LOW ) && ( md2 == HIGH )){
     maxCapSenseDevice = 2;  //  HoneycombBell
   }
   else {  //  HIGH-HIGH
@@ -102,18 +102,19 @@ void setup()
     err = MBR3110_setup(i);
     if (err){
       availableEachDevice[i] = false;
-      digitalWrite(LED2, HIGH);
+      digitalWrite(LED1, HIGH);
       errNum += 0x01<<i;
     }
   }
   setAda88_Number(errNum*10);
   delay(2000);
-  digitalWrite(LED2, LOW);
+  digitalWrite(LED1, LOW);
 #endif
 
   //  Normal Mode
+  MBR3110_resetAll(maxCapSenseDevice);
   errNum = 0;
-  for ( int i=0; i<maxCapSenseDevice; ++i ){
+  for (i=0; i<maxCapSenseDevice; ++i){
     if (availableEachDevice[i]){
       err = MBR3110_init(i);
       if (err){
@@ -148,6 +149,7 @@ void loop()
   //  Application
   switch(maxCapSenseDevice){
     case 2: hcb.mainLoop(); break;
+    case 3: break;
     case 4: tm40.mainLoop(); break;
     default: break;
   }
@@ -177,6 +179,7 @@ void loop()
     }
  #endif
     switch(maxCapSenseDevice){
+      case 3:
       case 4: tm40.checkTouch(sw); break;
       case 2: hcb.checkTwelveTouch(0); break;
       default: break;
@@ -198,7 +201,7 @@ void generateTimer( void )
 
   if ( gt.timer100msecEvent() == true ){
     //  heatbeat for Debug
-    (gt.timer100ms() & 0x0002)? digitalWrite(LED2, HIGH):digitalWrite(LED2, LOW);
+    //(gt.timer100ms() & 0x0002)? digitalWrite(LED2, HIGH):digitalWrite(LED2, LOW);
     setAda88_Number(gt.timer100ms());
   }
 }

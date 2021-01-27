@@ -25,33 +25,34 @@ void TouchMIDI40::checkTouch(uint8_t sw[][2])
   for (int i=0; i<4; ++i){
     for (int j=0; j<8; ++j){
       bool flg=false;
-      if ((sw[i][0] >> i) & 0x01){flg=true;}
-      if (flg^crntTouch[i*10+j]){makeMIDIEvent(i*10+j);}
+      if ((sw[i][0] >> j) & 0x01){flg=true;}
+      if (flg^crntTouch[i*10+j]){makeMIDIEvent(i*10+j, flg);}
       crntTouch[i*10+j] = flg;
     }
     for (int k=0; k<2; ++k){
       bool flg=false;
-      if ((sw[i][1] >> i) & 0x01){flg=true;}
-      if (flg^crntTouch[i*10+8+k]){makeMIDIEvent(i*10+8+k);}
+      if ((sw[i][1] >> k) & 0x01){flg=true;}
+      if (flg^crntTouch[i*10+8+k]){makeMIDIEvent(i*10+8+k, flg);}
       crntTouch[i*10+8+k] = flg;
     }
   } 
 }
 
-void TouchMIDI40::makeMIDIEvent(int tchNum)
+void TouchMIDI40::makeMIDIEvent(int tchNum, bool onoff)
 {
-  if ( crntTouch[tchNum] == false ){
+  if (onoff){
     // Note On
     setMidiNoteOn(tchNum+40,127);
-    digitalWrite(LED1, HIGH);
+    //digitalWrite(LED2, HIGH);
     swonCount++;
   }
   else {
     //  Note Off
     setMidiNoteOff(tchNum+40,0);
-    if ( swonCount != 0 ){ swonCount--;}
-    if ( swonCount == 0 ){
-      digitalWrite(LED1, LOW);
+    swonCount--;
+    if ( swonCount <= 0 ){
+      swonCount = 0;
+      //digitalWrite(LED2, LOW);
     }
   }
 }

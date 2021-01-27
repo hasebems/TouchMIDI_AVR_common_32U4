@@ -20,7 +20,7 @@ public:
   TouchMIDI40(void);
   void mainLoop(void);
   void checkTouch(uint8_t sw[][2]);
-  void makeMIDIEvent(int tchNum);
+  void makeMIDIEvent(int tchNum, bool onoff);
 
 private:
   bool  crntTouch[40];

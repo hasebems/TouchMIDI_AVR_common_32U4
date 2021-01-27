@@ -9,10 +9,11 @@
  * ========================================
 */
 #include	"Arduino.h"
-#include    <Wire.h>
+#include  <Wire.h>
+#include  <avr/pgmspace.h>
+
 #include	"configuration.h"
 #include	"i2cdevice.h"
-
 #include  "TouchMIDI_AVR_if.h"
 
 
@@ -141,7 +142,7 @@ static const unsigned char CAP_SENSE_ADDRESS_4 = 0x3b;
 //
 /*----------------------------------------------------------------------------*/
 // wide range small resolution
-static const unsigned char tCY8CMBR3110_ConfigData[MAX_DEVICE_MBR3110][CONFIG_DATA_SZ] = {
+static const unsigned char tCY8CMBR3110_ConfigData[MAX_DEVICE_MBR3110][CONFIG_DATA_SZ] PROGMEM = {
 {
 /* Project: C:\Users\hasebems\Documents\Cypress Projects\Design0602\Design0602.cprj
  * Generated: 2019/06/02 6:52:53 +09:00 */
@@ -232,6 +233,27 @@ static const unsigned char tI2cAdrs[MAX_DEVICE_MBR3110] =
   CAP_SENSE_ADDRESS_4
 };
 //-------------------------------------------------------------------------
+void MBR3110_resetAll(int maxdevNum)
+{
+  unsigned char i2cdata[2] = {CTRL_CMD, POWER_ON_AND_FINISHED};
+
+  if (maxdevNum >= MAX_DEVICE_MBR3110){ return -1;}
+
+  delay(15);
+  for (int i=0; i<maxdevNum; i++){
+    write_i2cDevice(tI2cAdrs[i],i2cdata,2);
+  }
+  delay(900);
+}
+//-------------------------------------------------------------------------
+void MBR3110_reset(unsigned char i2cAdrs)
+{
+  unsigned char i2cdata[2] = {CTRL_CMD, POWER_ON_AND_FINISHED};
+  delay(15);
+  write_i2cDevice(i2cAdrs,i2cdata,2);
+  delay(900);
+}
+//-------------------------------------------------------------------------
 int MBR3110_init( int number )
 {
  	unsigned char i2cdata[2];
@@ -242,15 +264,8 @@ int MBR3110_init( int number )
   const unsigned char* configData = tCY8CMBR3110_ConfigData[number];
   unsigned char i2cAdrs = tI2cAdrs[number];
 
-  delay(15);
-	i2cdata[0] = CTRL_CMD;
-  i2cdata[1] = POWER_ON_AND_FINISHED;
-	write_i2cDevice(i2cAdrs,i2cdata,2);
-  delay(900);
-
-  unsigned char checksum1, checksum2;
-  checksum1 = configData[126];
-  checksum2 = configData[127];
+  unsigned char checksum1 = pgm_read_byte(configData+126);
+  unsigned char checksum2 = pgm_read_byte(configData+127);
   int err = MBR3110_checkWriteConfig(checksum1,checksum2,i2cAdrs);
   if ( err != 0 ){
     return err;
@@ -273,22 +288,18 @@ int MBR3110_setup( int number )
   unsigned char i2cdata[2];
   int err;
 
-  //  check if already this number chip was finished.
-  delay(15);
-  i2cdata[0] = CTRL_CMD;
-  i2cdata[1] = POWER_ON_AND_FINISHED;
-  write_i2cDevice(i2cAdrs,i2cdata,2);
-  delay(900);
+  if (number >= MAX_DEVICE_MBR3110){ return -1;}
+
+  MBR3110_reset(i2cAdrs); 
 
   const unsigned char* configData = tCY8CMBR3110_ConfigData[number];
-  const unsigned char checksum1 = configData[126];
-  const unsigned char checksum2 = configData[127];      
+  const unsigned char checksum1 = pgm_read_byte(configData+126);
+  const unsigned char checksum2 = pgm_read_byte(configData+127);       
   if ( MBR3110_checkWriteConfig(checksum1,checksum2,i2cAdrs) == 0 ){
     //  checksum got correct.
     //  it doesn't need to write config.
     return 0;
   }
-
 
   //  check if factory preset device
   err = MBR3110_writeConfig(number, CAP_SENSE_ADDRESS_ORG);
@@ -300,11 +311,7 @@ int MBR3110_setup( int number )
   }
 
   //  After writing, Check again.
-  delay(15);
-  i2cdata[0] = CTRL_CMD;
-  i2cdata[1] = POWER_ON_AND_FINISHED;
-  write_i2cDevice(i2cAdrs,i2cdata,2);
-  delay(900);
+  MBR3110_reset(i2cAdrs);
   err = MBR3110_checkWriteConfig(checksum1,checksum2,i2cAdrs);
   if ( err != 0 ){
     //  checksum error
@@ -402,14 +409,10 @@ int MBR3110_writeConfig( int number, unsigned char crntI2cAdrs )
   int err;
 	unsigned char	data[CONFIG_DATA_SZ+1];
   const unsigned char* configData = tCY8CMBR3110_ConfigData[number];
+  unsigned char i2cdata[2];
 
   //*** Prepare ***
-  unsigned char i2cdata[2];
-  delay(15);
-  i2cdata[0] = CTRL_CMD;
-  i2cdata[1] = POWER_ON_AND_FINISHED;
-  write_i2cDevice(crntI2cAdrs,i2cdata,2);
-  delay(900);
+  MBR3110_reset(crntI2cAdrs);
 
 	//*** Step 1 ***
 	//	Check Power On
@@ -432,7 +435,7 @@ int MBR3110_writeConfig( int number, unsigned char crntI2cAdrs )
 	//	send Config Data
   for ( int i=0; i<CONFIG_DATA_SZ; i++ ){
     data[0] = CONFIG_DATA_OFFSET+i;
-    data[1] = configData[i];
+    data[1] = pgm_read_byte(configData+i);
     err = write_i2cDevice(crntI2cAdrs,data,2);
     if ( err != 0 ){ return err;}
   }
@@ -465,12 +468,12 @@ int MBR3110_writeConfig( int number, unsigned char crntI2cAdrs )
 	//*** Step 4 ***
 	//	Get Config Data
 	wrtData = CONFIG_DATA_OFFSET;
-	err =  read_nbyte_i2cDevice(crntI2cAdrs,&wrtData,data,1,CONFIG_DATA_SZ);
+	err =  read_nbyte_i2cDevice(tI2cAdrs[number],&wrtData,data,1,CONFIG_DATA_SZ);
 	if ( err != 0 ){ return err; }
 
 	//	Compare both Data
 	for ( int i=0; i<CONFIG_DATA_SZ; i++ ){
-		if ( configData[i] != data[i] ){ return /*data[i]*/i; }
+		if ( pgm_read_byte(configData+i) != data[i] ){ return /*data[i]*/i; }
 	}
 	
 	return 0;
@@ -508,7 +511,7 @@ void ada88_write( int letter )
 {
 	int	i;
 	unsigned char i2cBufx[17];
-	static const unsigned char letters[21][8] = {
+	static const unsigned char letters[21][8] PROGMEM = {
 		{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},	//	0:nothing
 		{0x02,0x05,0x88,0x88,0x8f,0x88,0x88,0x88},	//	1:A
 		{0x87,0x88,0x88,0x87,0x88,0x88,0x88,0x87},	//	2:B
@@ -537,7 +540,7 @@ void ada88_write( int letter )
 
 	i2cBufx[0] = 0;
 	for ( i=0; i<8; i++ ){
-		i2cBufx[i*2+1] = letters[letter][i];
+		i2cBufx[i*2+1] = pgm_read_byte(&(letters[letter][i]));
 		i2cBufx[i*2+2] = 0;
 	}
 	write_i2cDevice( ADA88_I2C_ADRS, i2cBufx, 17 );
@@ -548,7 +551,7 @@ void ada88_writeNumber( int num )	//	num 1999 .. -1999
 	int i;
 	unsigned char i2cBufx[17];
 	unsigned char ledPtn[8] = {0};
-	static const unsigned char numletter[10][5] = {
+	static const unsigned char numletter[10][5] PROGMEM = {
 		{ 0x07, 0x05, 0x05, 0x05, 0x07 },
 		{ 0x04, 0x04, 0x04, 0x04, 0x04 },
 		{ 0x07, 0x04, 0x07, 0x01, 0x07 },
@@ -560,7 +563,7 @@ void ada88_writeNumber( int num )	//	num 1999 .. -1999
 		{ 0x07, 0x05, 0x07, 0x05, 0x07 },
 		{ 0x07, 0x05, 0x07, 0x04, 0x07 }
 	};
-	static const unsigned char graph[10][2] = {
+	static const unsigned char graph[10][2] PROGMEM = {
 		{ 0x00, 0x00 },
 		{ 0x00, 0x40 },
 		{ 0x40, 0x60 },
@@ -590,13 +593,13 @@ void ada88_writeNumber( int num )	//	num 1999 .. -1999
 	int z2n = num2degits%10;
 
 	for ( i=0; i<5; i++ ){
-		ledPtn[i] |= numletter[hundred][i];
+		ledPtn[i] |= pgm_read_byte(&(numletter[hundred][i]));
 	}
 	for ( i=0; i<5; i++ ){
-		ledPtn[i] |= (numletter[deci][i]<<4);
+		ledPtn[i] |= (pgm_read_byte(&(numletter[deci][i]))<<4);
 	}
 	for ( i=0; i<2; i++ ){
-		ledPtn[i+6] = graph[z2n][i];
+		ledPtn[i+6] = pgm_read_byte(&(graph[z2n][i]));
 	}
 
 	i2cBufx[0] = 0;

@@ -15,6 +15,7 @@ void wireBegin( void );
 void initHardware( void );
 
 // USE_CY8CMBR3110
+  void MBR3110_resetAll(int maxdevNum);
 	int MBR3110_init( int number=0 );
   int MBR3110_originalAdrsExist(void);
   int MBR3110_setup( int number=0 );
