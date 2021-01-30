@@ -18,13 +18,16 @@ class TouchMIDI40 {
 
 public:
   TouchMIDI40(void);
-  void mainLoop(void);
-  void checkTouch(uint8_t sw[][2]);
-  void makeMIDIEvent(int tchNum, bool onoff);
+  void mainLoop(int devNum);
+  void checkTouch(uint16_t sw[]);
+  void checkTouch3dev(uint16_t sw[]);
+  void makeNoteEvent(int tchNum, bool onoff, int vel=127);
 
 private:
   bool  crntTouch[40];
+  int   tchNote[25];    // for 25key
   int   swonCount;
+  int   oct;            // for 25key
 
 };
 #endif
