@@ -19,8 +19,10 @@
 #define MODEPIN1      12  // PD6
 #define MODEPIN2      6   // PD7
 
-#define LED1          4   // PD4 - D3
-#define LED2          30  // PD5 - D2
+#define LED_ERR       4   // PD4
+#define LED_USB       30  // PD5
+#define LED1          7   // PE6
+#define LED2          5   // PC6
 
 //---------------------------------------------------------
 //    HoneycombBell Setting

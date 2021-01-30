@@ -54,7 +54,6 @@ void setup()
 
   //  Initialize Hardware
   wireBegin();
-//  Serial.begin(31250);
   MIDI.setHandleNoteOff( handlerNoteOff );
   MIDI.setHandleNoteOn( handlerNoteOn );
   MIDI.setHandleControlChange( handlerCC );
@@ -70,10 +69,12 @@ void setup()
   pinMode(MODEPIN1, INPUT); 
   pinMode(MODEPIN2, INPUT);
 
-  pinMode(LED1, OUTPUT);   // LED1
-  digitalWrite(LED1, LOW);
-//  pinMode(LED2, OUTPUT);   // LED2
-//  digitalWrite(LED2, HIGH);
+  pinMode(LED_ERR, OUTPUT);
+  digitalWrite(LED_ERR, HIGH);
+  pinMode(LED1, OUTPUT);
+  digitalWrite(LED1, HIGH);
+  pinMode(LED2, OUTPUT);
+  digitalWrite(LED2, HIGH);
   
   const uint8_t md1 = digitalRead(MODEPIN1);
   const uint8_t md2 = digitalRead(MODEPIN2);
@@ -102,13 +103,13 @@ void setup()
     err = MBR3110_setup(i);
     if (err){
       availableEachDevice[i] = false;
-      digitalWrite(LED1, HIGH);
+      digitalWrite(LED_ERR, LOW);
       errNum += 0x01<<i;
     }
   }
   setAda88_Number(errNum*10);
   delay(2000);
-  digitalWrite(LED1, LOW);
+  digitalWrite(LED_ERR, HIGH);
 #endif
 
   //  Normal Mode
@@ -125,10 +126,10 @@ void setup()
   }
   if (errNum){
     //  if err, stop 5sec.
-    digitalWrite(LED1, HIGH);
+    digitalWrite(LED_ERR, LOW);
     setAda88_Number(errNum*10);
     delay(5000);
-    digitalWrite(LED1, LOW);
+    digitalWrite(LED_ERR, HIGH);
     ada88_write(0);
   }
 
@@ -149,8 +150,8 @@ void loop()
   //  Application
   switch(maxCapSenseDevice){
     case 2: hcb.mainLoop(); break;
-    case 3: break;
-    case 4: tm40.mainLoop(); break;
+    case 3: // fallthrough
+    case 4: tm40.mainLoop(maxCapSenseDevice); break;
     default: break;
   }
 
@@ -159,29 +160,31 @@ void loop()
 
   if ( gt.timer10msecEvent() ){
     //  Touch Sensor
-    uint8_t sw[MAX_DEVICE_MBR3110][2] = {0};
+    uint16_t sw[MAX_DEVICE_MBR3110] = {0};
  #ifdef USE_CY8CMBR3110
     int errNum = 0;
     for (int i=0; i<maxCapSenseDevice; ++i){
       if (availableEachDevice[i] == true){
-        int err = MBR3110_readTouchSw(sw[i],i);
+        uint8_t swtmp[2] = {0};
+        int err = MBR3110_readTouchSw(swtmp,i);
         if (err){
           errNum += 0x01<<i;          
         }
+        sw[i] = (((uint16_t)swtmp[1])<<8) + swtmp[0];
       }
     }
     if (errNum){
       setAda88_Number(errNum*10);
-      digitalWrite(LED1, HIGH);
+      digitalWrite(LED_ERR, LOW);
     }
     else {
-      digitalWrite(LED1, LOW);
+      digitalWrite(LED_ERR, HIGH);
     }
  #endif
     switch(maxCapSenseDevice){
-      case 3:
-      case 4: tm40.checkTouch(sw); break;
       case 2: hcb.checkTwelveTouch(0); break;
+      case 3: tm40.checkTouch3dev(sw); break;
+      case 4: tm40.checkTouch(sw); break;
       default: break;
     }
   }
@@ -202,22 +205,16 @@ void generateTimer( void )
   if ( gt.timer100msecEvent() == true ){
     //  heatbeat for Debug
     //(gt.timer100ms() & 0x0002)? digitalWrite(LED2, HIGH):digitalWrite(LED2, LOW);
-    setAda88_Number(gt.timer100ms());
   }
 }
 /*----------------------------------------------------------------------------*/
 //
-//     MIDI Command & UI
+//     MIDI Out
 //
-/*----------------------------------------------------------------------------*/
-void receiveMidi( void ){ MIDI.read();}
 /*----------------------------------------------------------------------------*/
 void setMidiNoteOn( uint8_t dt0, uint8_t dt1 )
 {
-//  uint8_t dt[3] = { 0x90, dt0, dt1 };
-//  Serial.write(dt,3);
   MIDI.sendNoteOn( dt0, dt1, 1 );
-
   midiEventPacket_t event = {0x09, 0x90, dt0, dt1};
   MidiUSB.sendMIDI(event);
   MidiUSB.flush();
@@ -225,32 +222,35 @@ void setMidiNoteOn( uint8_t dt0, uint8_t dt1 )
 /*----------------------------------------------------------------------------*/
 void setMidiNoteOff( uint8_t dt0, uint8_t dt1 )
 {
-//  uint8_t dt[3] = { 0x80, dt0, dt1 };
-//  Serial.write(dt,3);
   MIDI.sendNoteOff( dt0, dt1, 1 );
-
   midiEventPacket_t event = {0x09, 0x90, dt0, 0};
   MidiUSB.sendMIDI(event);
   MidiUSB.flush();
 }
 /*----------------------------------------------------------------------------*/
-void handlerNoteOn( byte channel , byte number , byte value ){ setMidiNoteOn( number, value );}
+//      Serial MIDI In
 /*----------------------------------------------------------------------------*/
-void handlerNoteOff( byte channel , byte number , byte value ){ setMidiNoteOff( number, value );}
+void receiveMidi( void ){
+  MIDI.read();
+  // midiEventPacket_t rx = MIDIUSB.read();
+}
+/*----------------------------------------------------------------------------*/
+void handlerNoteOn( byte channel , byte number , byte value ){ /*setMidiNoteOn( number, value );*/}
+/*----------------------------------------------------------------------------*/
+void handlerNoteOff( byte channel , byte number , byte value ){ /*setMidiNoteOff( number, value );*/}
 /*----------------------------------------------------------------------------*/
 void handlerCC( byte channel , byte number , byte value )
 {
-  if ( number == /*0x10*/ midi::GeneralPurposeController1 ){
+  if (maxCapSenseDevice != 2){ return;}
+
+  if (number == /*0x10*/ midi::GeneralPurposeController1){
     hcb.rcvClock( value );
   }
 }
 /*----------------------------------------------------------------------------*/
 void midiClock( uint8_t msg )
 {
-//  uint8_t dt[3] = { 0xb0, 0x10, msg };
-
 //  if ( isMasterBoard == false ){
-//  Serial.write(dt,3);
 //    MIDI.sendControlChange( midi::GeneralPurposeController1, msg, 1 );
 //  }
 }
