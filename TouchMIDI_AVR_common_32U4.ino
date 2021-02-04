@@ -70,7 +70,7 @@ void setup()
   pinMode(MODEPIN2, INPUT);
 
   pinMode(LED_ERR, OUTPUT);
-  digitalWrite(LED_ERR, HIGH);
+  digitalWrite(LED_ERR, LOW);
   pinMode(LED1, OUTPUT);
   digitalWrite(LED1, HIGH);
   pinMode(LED2, OUTPUT);
@@ -86,9 +86,11 @@ void setup()
   //  set mode
   if (( md1 == LOW ) && ( md2 == LOW )){
     maxCapSenseDevice = 4;  //  TouchMIDI40
+    digitalWrite(LED_USB, HIGH);
   }
   else if (( md1 == HIGH ) && ( md2 == LOW )){
     maxCapSenseDevice = 3;  //  TouchMIDI30key
+    digitalWrite(LED_USB, HIGH);
   }
   else if (( md1 == LOW ) && ( md2 == HIGH )){
     maxCapSenseDevice = 2;  //  HoneycombBell
@@ -97,19 +99,25 @@ void setup()
     maxCapSenseDevice = 1;  //  WindMIDI
   }
 
-#if 1 // CapSense Setup Mode
   int errNum = 0;
+#if 0 // CapSense Setup Mode
   for (i=0; i<maxCapSenseDevice; ++i){
     err = MBR3110_setup(i);
     if (err){
       availableEachDevice[i] = false;
-      digitalWrite(LED_ERR, LOW);
+      digitalWrite(LED_ERR, HIGH);
       errNum += 0x01<<i;
     }
   }
   setAda88_Number(errNum*10);
-  delay(2000);
-  digitalWrite(LED_ERR, HIGH);
+  delay(2000);          // if something wrong, 2sec LED_ERR on
+  for (i=0; i<3; i++){  // when finished, flash 3times.
+    digitalWrite(LED_ERR, LOW);
+    delay(100);
+    digitalWrite(LED_ERR, HIGH);
+    delay(100);
+  }
+  digitalWrite(LED_ERR, LOW);
 #endif
 
   //  Normal Mode
@@ -126,10 +134,10 @@ void setup()
   }
   if (errNum){
     //  if err, stop 5sec.
-    digitalWrite(LED_ERR, LOW);
-    setAda88_Number(errNum*10);
-    delay(5000);
     digitalWrite(LED_ERR, HIGH);
+    setAda88_Number(errNum*10);
+    delay(5000);  //  5sec LED_ERR on
+    digitalWrite(LED_ERR, LOW);
     ada88_write(0);
   }
 
@@ -175,10 +183,10 @@ void loop()
     }
     if (errNum){
       setAda88_Number(errNum*10);
-      digitalWrite(LED_ERR, LOW);
+      digitalWrite(LED_ERR, HIGH);
     }
     else {
-      digitalWrite(LED_ERR, HIGH);
+      digitalWrite(LED_ERR, LOW);
     }
  #endif
     switch(maxCapSenseDevice){
