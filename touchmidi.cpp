@@ -16,7 +16,7 @@
 /*----------------------------------------------------------------------------*/
 TouchMIDI40::TouchMIDI40(void) :
   crntTouch{0}, tchNote{0}, swonCount(0),
-  oct(0)
+  oct(0), velocity(127)
 {}
 /*----------------------------------------------------------------------------*/
 void TouchMIDI40::mainLoop(int devNum)
@@ -25,8 +25,10 @@ void TouchMIDI40::mainLoop(int devNum)
     int led1 = HIGH, led2 = HIGH;
     if (oct > 0){led1=LOW;}
     else if (oct < 0){led2=LOW;}
-    digitalWrite(LED1, led1);
-    digitalWrite(LED2, led2);
+    if (led1 == LOW){ gt.timer100ms() & (0x0004>>oct)? digitalWrite(LED1, HIGH):digitalWrite(LED1, LOW);}
+    else {digitalWrite(LED1, HIGH);}
+    if (led2 == LOW){ gt.timer100ms() & (0x0004>>(-oct))? digitalWrite(LED2, HIGH):digitalWrite(LED2, LOW);}
+    else {digitalWrite(LED2, HIGH);}
   }
 }
 /*----------------------------------------------------------------------------*/
@@ -58,15 +60,15 @@ void TouchMIDI40::checkTouch3dev(uint16_t sw[])
           int midiNote;
           if (flg){ tchNote[NTT[num]] = midiNote = NTT[num] + 48 + oct*12;}
           else { midiNote = tchNote[NTT[num]];}
-          makeNoteEvent(midiNote, flg);
+          makeNoteEvent(midiNote, flg, velocity);
         }
         else if (flg){
           switch(NTT[num]){
             case 25: oct--; if(oct<-2) oct=-2; break;
             case 29: oct++; if(oct>2) oct=2; break;
-            case 26:
-            case 27:
-            case 28:
+            case 26: velocity = 60; break;
+            case 27: velocity = 100; break;
+            case 28: velocity = 127; break;
             default: break;
           }
         }

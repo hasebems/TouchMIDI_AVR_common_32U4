@@ -28,6 +28,7 @@ private:
   int   tchNote[25];    // for 25key
   int   swonCount;
   int   oct;            // for 25key
+  int   velocity;       // for 25key
 
 };
 #endif

@@ -25,7 +25,6 @@ uint8_t colorTbl( uint8_t index, uint8_t rgb );
 void setLed( int ledNum, uint8_t red, uint8_t green, uint8_t blue );
 void lightLed( void );
 
-
 class GlobalTimer {
 
 public:
@@ -86,4 +85,6 @@ private:
   uint32_t  _timer1sec;
   uint32_t  _timer1sec_sabun;
 };
+
+extern GlobalTimer gt;
 #endif
