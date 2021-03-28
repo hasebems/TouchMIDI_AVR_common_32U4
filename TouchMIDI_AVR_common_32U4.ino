@@ -20,6 +20,7 @@
 #include  "i2cdevice.h"
 #include  "honeycombbell.h"
 #include  "touchmidi.h"
+#include  "magicflute.h"
 
 #ifdef __AVR__
   #include <avr/power.h>
@@ -40,6 +41,7 @@ bool availableEachDevice[4];
 GlobalTimer gt;
 static HoneycombBell hcb;
 static TouchMIDI40 tm40;
+static MagicFlute mf;
 
 /*----------------------------------------------------------------------------*/
 void flash()
@@ -100,7 +102,7 @@ void setup()
   }
 
   int errNum = 0;
-#if 0 // CapSense Setup Mode
+#if SETUP_MODE // CapSense Setup Mode
   for (i=0; i<maxCapSenseDevice; ++i){
     err = MBR3110_setup(i);
     if (err){
@@ -157,6 +159,7 @@ void loop()
 
   //  Application
   switch(maxCapSenseDevice){
+    case 1: mf.midiOutAirPressure(); break;
     case 2: hcb.mainLoop(); break;
     case 3: // fallthrough
     case 4: tm40.mainLoop(maxCapSenseDevice); break;
@@ -190,6 +193,7 @@ void loop()
     }
  #endif
     switch(maxCapSenseDevice){
+      case 1: mf.checkSixTouch(sw); break;
       case 2: hcb.checkTwelveTouch(0); break;
       case 3: tm40.checkTouch3dev(sw); break;
       case 4: tm40.checkTouch(sw); break;
@@ -220,18 +224,42 @@ void generateTimer( void )
 //     MIDI Out
 //
 /*----------------------------------------------------------------------------*/
-void setMidiNoteOn( uint8_t dt0, uint8_t dt1 )
+void setMidiNoteOn( uint8_t note, uint8_t vel )
 {
-  MIDI.sendNoteOn( dt0, dt1, 1 );
-  midiEventPacket_t event = {0x09, 0x90, dt0, dt1};
+  MIDI.sendNoteOn( note, vel, 1 );
+  midiEventPacket_t event = {0x09, 0x90, note, vel};
   MidiUSB.sendMIDI(event);
   MidiUSB.flush();
 }
 /*----------------------------------------------------------------------------*/
-void setMidiNoteOff( uint8_t dt0, uint8_t dt1 )
+void setMidiNoteOff( uint8_t note, uint8_t vel )
 {
-  MIDI.sendNoteOff( dt0, dt1, 1 );
-  midiEventPacket_t event = {0x09, 0x90, dt0, 0};
+  MIDI.sendNoteOff( note, vel, 1 );
+  midiEventPacket_t event = {0x09, 0x90, note, 0};
+  MidiUSB.sendMIDI(event);
+  MidiUSB.flush();
+}
+/*----------------------------------------------------------------------------*/
+void setMidiProgramChange( uint8_t number )
+{
+  MIDI.sendProgramChange( number, 0);
+  midiEventPacket_t event = {0x0c, 0xc0, number, 0};
+  MidiUSB.sendMIDI(event);
+  MidiUSB.flush();
+}
+/*----------------------------------------------------------------------------*/
+void setMidiControlChange( uint8_t controller, uint8_t value )
+{
+  MIDI.sendControlChange( controller, value, 0 );
+  midiEventPacket_t event = {0x0b, 0xb0, controller, value};
+  MidiUSB.sendMIDI(event);
+  MidiUSB.flush();
+}
+/*----------------------------------------------------------------------------*/
+void setMidiPolyPressure( uint8_t note, uint8_t value )
+{
+  MIDI.sendPolyPressure( note, value, 0 );
+  midiEventPacket_t event = {0x0a, 0xa0, note, value};
   MidiUSB.sendMIDI(event);
   MidiUSB.flush();
 }

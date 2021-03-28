@@ -12,6 +12,11 @@
 #define CONFIGURATION_H
 
 //---------------------------------------------------------
+//    Touch Sensor Setup Mode
+//---------------------------------------------------------
+#define SETUP_MODE    0   //  1: Setup Mode, 0: Normal Mode
+
+//---------------------------------------------------------
 //    Hardware Setting
 //---------------------------------------------------------
 #define NEOPIXEL_PIN  8   // PB4
@@ -35,6 +40,7 @@
 //---------------------------------------------------------
 #define   USE_CY8CMBR3110
 #define   USE_ADA88
+#define   USE_AP4
 //#define   USE_LPS22HB
 //#define   USE_LPS25H
 //#define   USE_AQM1602XA

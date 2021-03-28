@@ -16,8 +16,13 @@
 
 int analogDataRead( void );
 void setAda88_Number( int );
-void setMidiNoteOn( uint8_t dt0, uint8_t dt1 );
-void setMidiNoteOff( uint8_t dt0, uint8_t dt1 );
+void setMidiBuffer( uint8_t status, uint8_t message, uint8_t value );
+void setMidiNoteOn( uint8_t note, uint8_t vel );
+void setMidiNoteOff( uint8_t note, uint8_t vel );
+void setMidiProgramChange( uint8_t number );
+void setMidiControlChange( uint8_t controller, uint8_t value );
+void setMidiPolyPressure( uint8_t note, uint8_t value );
+
 void midiClock( uint8_t msg );
 
 //  for NeoPixel
