@@ -13,7 +13,7 @@
 #include "TouchMIDI_AVR_if.h"
 #include "configuration.h"
 #include "i2cdevice.h"
-#include  "air_pressure.h"
+#include "air_pressure.h"
 
 //-------------------------------------------------------------------------
 //  Adjustable Value
@@ -117,6 +117,14 @@ int MagicFlute::midiOutAirPressure( void )
 
   prs = ap.getPressure();
   if ( gt.timer10msecEvent() == true ){
+
+    if ( _ledNoteIndicatorCntr > 0 ){
+      _ledNoteIndicatorCntr -= 1;
+      if ( _ledNoteIndicatorCntr == 0 ){
+        digitalWrite(LED2, HIGH);
+      }
+    }
+    
     if ( ap.generateExpEvent(midiExpPtr()) == true ){
       uint8_t oct = (_toneNumber/MAX_TONE_NUMBER)*12;
       if (( nowPlaying() == false ) && ( _midiExp > 0 )){
@@ -125,6 +133,8 @@ int MagicFlute::midiOutAirPressure( void )
         _muteCounter = 1000;  //  100sec
         setMidiNoteOn( _crntNote+_transpose+oct, 0x7f );
         _doremi = _crntNote%12;
+        digitalWrite(LED2, LOW);
+        _ledNoteIndicatorCntr = 5;
       }
       else if (( nowPlaying() == true ) && ( _midiExp == 0 )){
         _nowPlaying = false;
@@ -276,6 +286,8 @@ void MagicFlute::analyseSixTouchSens( uint8_t tch )
           setMidiNoteOff( mdNote+_transpose+oct, 0x40 );
           setMidiNoteOn( mdNote+_transpose+oct, 0x7f );
         }
+        digitalWrite(LED2, LOW);
+        _ledNoteIndicatorCntr = 5;
         _doremi = mdNote%12;
       }
       else {

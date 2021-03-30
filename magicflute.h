@@ -23,7 +23,7 @@ public:
   MagicFlute() : _swState(0), _lastTouch(0), _crntTouch(0), _tapTouch(0),
                  _lastSw(0x24),    //  any touch senser isn't on
                  _crntNote(96), _doremi(12), _nowPlaying(false), _muteCounter(1000),
-                 _midiExp(0), _startTime(0), _deadBand(0), 
+                 _midiExp(0), _ledNoteIndicatorCntr(0), _startTime(0), _deadBand(0), 
                  _lastSwState(0), _toneNumber(0), _transpose(0),
                  _ledIndicatorCntr(0) {}
 
@@ -71,6 +71,7 @@ private:
   bool        _nowPlaying;  //  blowing now
   uint16_t    _muteCounter;
   uint8_t     _midiExp;
+  uint8_t     _ledNoteIndicatorCntr;
 
 //  Time Measurement
   uint32_t    _startTime;  //  !=0 means during deadBand
