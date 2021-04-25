@@ -33,9 +33,14 @@ void initHardware( void );
 	void ada88_init( void );
 	void ada88_write( int letter );
 	void ada88_writeNumber( int num );
+  void ada88_writeGraph( int num );
 
 // USE_AP4
   int ap4_getAirPressure( void );
+
+// USE_MPRLF0001PG
+  void mprlf0001pg_init( void );
+  int mprlf0001pg_getAirPressure( void );
 
 // USE_AQM1602XA
 	void aqm1602xa_init( void );

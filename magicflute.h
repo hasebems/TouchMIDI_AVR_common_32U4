@@ -31,7 +31,7 @@ public:
 //  virtual ~MagicFlute(){}
 
   void    checkSixTouch( uint16_t* sw );
-  int     midiOutAirPressure( void );
+  void    midiOutAirPressure( void );
   void    periodic100msec( void );
 
 private:

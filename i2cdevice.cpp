@@ -631,6 +631,36 @@ void ada88_writeNumber( int num )	//	num 1999 .. -1999
 	}
 	write_i2cDevice( ADA88_I2C_ADRS, i2cBufx, 17 );
 }
+//---------------------------------------------------------
+void ada88_writeGraph( int num )  //  num 0 .. 63
+{
+  int i;
+  unsigned char i2cBufx[17];
+  unsigned char ledPtn[8] = {0};
+
+  if ( num > 63 ){ num = 63; }
+  else if ( num < 0 ){ num = 0;}
+
+  int loDigit = num%8;
+  int hiDigit = num/8;
+  for (i=0; i<8; i++){
+    if (hiDigit > i){ ledPtn[i] = 0xff;}
+    else if (hiDigit == i){
+      unsigned char bt = 0x80;
+      if (loDigit != 0){
+        for (int j=0; j<loDigit; j++){ bt |= (0x01<<j);}
+      }
+      ledPtn[i] = bt;
+    }
+  }
+
+  i2cBufx[0] = 0;
+  for (i=0; i<8; i++){
+    i2cBufx[i*2+1] = ledPtn[i];
+    i2cBufx[i*2+2] = 0;
+  }
+  write_i2cDevice( ADA88_I2C_ADRS, i2cBufx, 17 );
+}
 #endif
 
 
@@ -648,6 +678,46 @@ int ap4_getAirPressure( void )
   unsigned char buf[2];
   err = read_only_nbyte_i2cDevice( AP4_I2C_ADRS, buf, 2);
   return (static_cast<int>(buf[0]&0x3f)*256+buf[1])/10;
+}
+#endif
+
+
+#ifdef USE_MPRLF0001PG
+//---------------------------------------------------------
+//    << MPRLF0001PG >>
+//---------------------------------------------------------
+#define   MPRLF0001PG_I2C_ADRS 0x18
+
+//---------------------------------------------------------
+//    Initialize MPRLF0001PG
+//---------------------------------------------------------
+void mprlf0001pg_init( void )
+{
+  int   err = 0;
+  unsigned char buf[3] = {0xaa, 0x00, 0x00};
+  err = write_i2cDevice( MPRLF0001PG_I2C_ADRS, buf, 3 );
+  if ( err ){ i2cErrCode = err; return; }  
+}
+//---------------------------------------------------------
+//    Read MPRLF0001PG
+//      0 - 16777215  (24bit) => 0 - 2047 (11bit)
+//      err : -1 busy
+//            -2 ... -5 I2C error
+//---------------------------------------------------------
+int mprlf0001pg_getAirPressure( void )
+{
+  int   err = 0;
+  unsigned char buf[4];
+  err = read_only_nbyte_i2cDevice( MPRLF0001PG_I2C_ADRS, buf, 4);
+  if (err != 0){ i2cErrCode = err; return err-6; }
+  else {
+    if (buf[0] & 0x20){ return -1;}
+    else {
+      mprlf0001pg_init();// start sampling
+      return ((static_cast<int>(buf[1])<<16) + 
+             (static_cast<int>(buf[2])<<8))/32;
+    }
+  }
 }
 #endif
 

@@ -150,6 +150,10 @@ void setup()
   //  Set Interrupt
   MsTimer2::set(10, flash);     // 10ms Interval Timer Interrupt
   MsTimer2::start();
+
+#ifdef USE_MPRLF0001PG
+  mprlf0001pg_init();
+#endif
 }
 /*----------------------------------------------------------------------------*/
 void loop()

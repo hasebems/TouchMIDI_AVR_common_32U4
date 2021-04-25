@@ -50,13 +50,22 @@ int AirPressure::getPressure( void )
   for ( int i=0; i<MOVING_AV_MAX-1; i++ ){
     _movingAv[i] = _movingAv[i+1];
   }
-  _movingAv[MOVING_AV_MAX-1] = ap4_getAirPressure(); // analogDataRead();
+
+//  _movingAv[MOVING_AV_MAX-1] = ap4_getAirPressure(); // analogDataRead();
+  int prs = mprlf0001pg_getAirPressure();
+  if ( prs >= 0 ){
+    _movingAv[MOVING_AV_MAX-1] = prs;
+  }
+  else {
+    _movingAv[MOVING_AV_MAX-1] = _movingAv[MOVING_AV_MAX-2];
+  }
 
   int total = 0;
   for ( int i=0; i<MOVING_AV_MAX; i++ ){
     total += _movingAv[i];
   }
   _lastPressure = total/MOVING_AV_MAX;
+  ada88_writeGraph(_lastPressure/32); //  debug
   return _lastPressure;
 }
 /*----------------------------------------------------------------------------*/

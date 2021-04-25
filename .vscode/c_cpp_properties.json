@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/Users/jca03205/Documents/Arduino/libraries/MsTimer2",
+                "/Users/jca03205/Documents/Arduino/libraries/Adafruit_NeoPixel",
+                "/Users/jca03205/Documents/Arduino/libraries/MIDI_Library/src",
+                "/Users/jca03205/Documents/Arduino/libraries/MIDIUSB/src",
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino",
+                "/Users/jca03205/Library/Arduino15/packages/arduino/tools/avr-gcc/4.8.1-arduino5/avr/include"
+            ],
+            "defines": [],
+            "macFrameworkPath": [
+                "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++98",
+            "intelliSenseMode": "macos-clang-x64"
+        }
+    ],
+    "version": 4
+}

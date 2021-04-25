@@ -111,12 +111,10 @@ void MagicFlute::checkSixTouch( uint16_t* sw )
   }
 }
 /*----------------------------------------------------------------------------*/
-int MagicFlute::midiOutAirPressure( void )
+void MagicFlute::midiOutAirPressure( void )
 {
-  int prs = 0;
-
-  prs = ap.getPressure();
   if ( gt.timer10msecEvent() == true ){
+    int prs = ap.getPressure();
 
     if ( _ledNoteIndicatorCntr > 0 ){
       _ledNoteIndicatorCntr -= 1;
@@ -146,8 +144,6 @@ int MagicFlute::midiOutAirPressure( void )
       setMidiControlChange( 0x01, (_midiExp>>3)+32 );
     }
   }
-
-  return prs;
 }
 //-------------------------------------------------------------------------
 void MagicFlute::periodic100msec( void )
