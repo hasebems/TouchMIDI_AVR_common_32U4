@@ -81,7 +81,7 @@ void setup()
   const uint8_t md1 = digitalRead(MODEPIN1);
   const uint8_t md2 = digitalRead(MODEPIN2);
 
-  for (i=0; i<4; ++i){
+  for (i=0; i<MAX_DEVICE_MBR3110; ++i){
     availableEachDevice[i] = true;
   }
 
@@ -152,6 +152,7 @@ void setup()
     else if (( dip3 == HIGH ) && ( dip4 == LOW  )){ setNumber = 2;}
     else if (( dip3 == LOW  ) && ( dip4 == LOW  )){ setNumber = 3;}
     else if (( dip3 == LOW  ) && ( dip4 == HIGH )){ setNumber = 4;}
+    else { setNumber = 1;}
     hcb.setSetNumber(setNumber);
     hcb.decideOctave();
   }
