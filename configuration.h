@@ -19,16 +19,32 @@
 //---------------------------------------------------------
 //    Hardware Setting
 //---------------------------------------------------------
-#define NEOPIXEL_PIN  8   // PB4
+#define HONEY_COMB_BELL   //  HoneycombBell でないときはコメントアウト
 
-#define MODEPIN1      12  // PD6
-#define MODEPIN2      6   // PD7
+#ifndef HONEY_COMB_BELL // TouchMIDI 仕様
+  #define NEOPIXEL_PIN  8   // PB4
 
-#define LED_ERR       4   // PD4
-#define LED_USB       30  // PD5
-#define LED1          7   // PE6
-#define LED2          5   // PC6
+  #define MODEPIN1      12  // PD6
+  #define MODEPIN2      6   // PD7
 
+  #define LED_ERR       4   // PD4
+  #define LED_USB       30  // PD5
+  #define LED1          7   // PE6
+  #define LED2          5   // PC6
+
+#else  // HoneycombBell の仕様
+  #define NEOPIXEL_PIN  4   // PD4
+
+  #define MODEPIN1      8   // PB4
+  #define MODEPIN2      9   // PB5
+  #define MODEPIN3      10  // PB6
+  #define MODEPIN4      11  // PB7
+
+  #define LED_ERR       6   // PD7
+  #define LED_USB       30  // PD5 no connection
+  #define LED1          7   // PE6 no connection
+  #define LED2          5   // PC6 no connection
+#endif
 //---------------------------------------------------------
 //    HoneycombBell Setting
 //---------------------------------------------------------

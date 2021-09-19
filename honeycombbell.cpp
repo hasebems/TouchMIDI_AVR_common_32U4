@@ -97,24 +97,15 @@ void HoneycombBell::rcvClock( uint8_t msg )
   midiClock((msg & 0x70) | _myConnectionNumber);
 }
 /*----------------------------------------------------------------------------*/
-void HoneycombBell::checkTwelveTouch( int device )
+void HoneycombBell::checkTwelveTouch(uint16_t sw[])
 {
-  uint8_t swb[2] = {0};
-  int err = 1;
-  const int baseNum = device*_MAX_LED_PER_DEVICE;
+  for (int dev=0; dev<_MAX_DEVICE_NUM; dev++){
+    const int baseNum = dev*_MAX_LED_PER_DEVICE;
 
-  if ( device >= _MAX_DEVICE_NUM ){ return; }
-
-#ifdef USE_CY8CMBR3110
-  err = MBR3110_readTouchSw(swb,device);
-#endif
-
-  if ( err == 0 ){
-    uint16_t sw = ((uint16_t)swb[0]) | ((uint16_t)swb[1]<<8);
     for ( int i=0; i<_MAX_LED_PER_DEVICE; i++ ){
       uint16_t  bitPtn = 0x0001 << i;
-      if ( (_swState[device]&bitPtn)^(sw&bitPtn) ){
-        if ( sw & bitPtn ){
+      if ( (_swState[dev]&bitPtn)^(sw[dev]&bitPtn) ){
+        if ( sw[dev] & bitPtn ){
           setMidiNoteOn( baseNum+i+(12*_octave), 0x7f );
           _led[baseNum+i].setNeoPixel( TOUCH_ON );
         }
@@ -124,7 +115,7 @@ void HoneycombBell::checkTwelveTouch( int device )
         }
       }
     }
-    _swState[device] = sw;
+    _swState[dev] = sw[dev];
     //setAda88_Number((swState[0]<<6) | (swState[1]&0x3f));
   }
 }

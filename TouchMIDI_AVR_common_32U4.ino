@@ -143,6 +143,20 @@ void setup()
     ada88_write(0);
   }
 
+#ifdef HONEY_COMB_BELL
+  if (maxCapSenseDevice == 2){
+    int setNumber;
+    const uint8_t dip3 = digitalRead(MODEPIN3);
+    const uint8_t dip4 = digitalRead(MODEPIN4);
+    if      (( dip3 == HIGH ) && ( dip4 == HIGH )){ setNumber = 1;}
+    else if (( dip3 == HIGH ) && ( dip4 == LOW  )){ setNumber = 2;}
+    else if (( dip3 == LOW  ) && ( dip4 == LOW  )){ setNumber = 3;}
+    else if (( dip3 == LOW  ) && ( dip4 == HIGH )){ setNumber = 4;}
+    hcb.setSetNumber(setNumber);
+    hcb.decideOctave();
+  }
+#endif
+
   //  Set NeoPixel Library 
   led.begin();
   led.show(); // Initialize all pixels to 'off'
@@ -150,6 +164,10 @@ void setup()
   //  Set Interrupt
   MsTimer2::set(10, flash);     // 10ms Interval Timer Interrupt
   MsTimer2::start();
+
+#ifdef USE_MPRLF0001PG
+  mprlf0001pg_init();
+#endif
 }
 /*----------------------------------------------------------------------------*/
 void loop()
@@ -194,7 +212,7 @@ void loop()
  #endif
     switch(maxCapSenseDevice){
       case 1: mf.checkSixTouch(sw); break;
-      case 2: hcb.checkTwelveTouch(0); break;
+      case 2: hcb.checkTwelveTouch(sw); break;
       case 3: tm40.checkTouch3dev(sw); break;
       case 4: tm40.checkTouch(sw); break;
       default: break;

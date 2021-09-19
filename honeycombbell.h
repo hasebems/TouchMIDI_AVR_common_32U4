@@ -54,7 +54,7 @@ public:
   void mainLoop( void );
   void periodic100msec( void ){}
   void rcvClock( uint8_t msg );
-  void checkTwelveTouch( int device );
+  void checkTwelveTouch(uint16_t sw[]);
   void decideOctave( void );
 
   void setSetNumber( int num ){ _setNumber = num;}
