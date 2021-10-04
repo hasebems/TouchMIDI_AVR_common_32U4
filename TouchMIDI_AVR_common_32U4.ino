@@ -290,9 +290,21 @@ void receiveMidi( void ){
   // midiEventPacket_t rx = MIDIUSB.read();
 }
 /*----------------------------------------------------------------------------*/
-void handlerNoteOn( byte channel , byte number , byte value ){ /*setMidiNoteOn( number, value );*/}
+void handlerNoteOn( byte channel , byte number , byte value ){
+#ifdef HONEY_COMB_BELL
+  if (maxCapSenseDevice == 2){
+    setMidiNoteOn( number, value );
+  }
+#endif
+}
 /*----------------------------------------------------------------------------*/
-void handlerNoteOff( byte channel , byte number , byte value ){ /*setMidiNoteOff( number, value );*/}
+void handlerNoteOff( byte channel , byte number , byte value ){
+#ifdef HONEY_COMB_BELL
+  if (maxCapSenseDevice == 2){
+    setMidiNoteOff( number, value );
+  }
+#endif
+}
 /*----------------------------------------------------------------------------*/
 void handlerCC( byte channel , byte number , byte value )
 {
